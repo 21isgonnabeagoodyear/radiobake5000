@@ -6,6 +6,27 @@
 #include <stdlib.h>
 #include "matrix.c"
 
+/*
+void doradio(int pixel)
+{
+		sm_use("renderforward");
+		glUniform1iv(sm_uniloc("patchoffset"), 1, &pixel);//render a patch
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glBindVertexArray(examplemodelvao);
+		glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
+
+
+	glDisable(GL_DEPTH_TEST);
+	glBlendFunc (GL_ONE, GL_ONE);
+		sm_use("gather");
+		glUniform1iv(sm_uniloc("patchoffset"), 1, &pixel);//render a patch
+		glDrawArrays(GL_POINTS, 0, 256*256);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+
+}
+*/
+
 //#define WINDOWED
 int main()
 {
@@ -42,8 +63,19 @@ int main()
 	glClearColor(0.3,0.5,1,0);
 	glClear(GL_COLOR_BUFFER_BIT);
 
+
+
+
+	if(sm_load("copystarting"))return;
 	if(sm_load("gennormals"))return;
-	if(sm_load("genpositions"))return;
+//	if(sm_load("genpositions"))return;
+	if(sm_load("renderforward"))return;
+	if(sm_load("gather"))return;
+	sm_use("gather");//must be cleared
+	glClearColor(0,0,0,0);
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClearColor(0.3,0.5,1,0);
+	
 
 	if(sm_load("example"))return;
 
@@ -90,13 +122,55 @@ int main()
 	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 	glBindVertexArray(examplemodelvao);
 	glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
-	sm_use("genpositions");
+	//sm_use("genpositions");
+	//glDisable(GL_DEPTH_TEST);
+	//glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+	//glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
+	sm_use("copystarting");
 	glDisable(GL_DEPTH_TEST);
-	glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-	glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
-	
-	for(i=0;i>=0;i++)
+	glClear(GL_COLOR_BUFFER_BIT);
+	glDrawArrays(GL_TRIANGLE_FAN, 0,4);
+	int numframes = 0;
+	int j;
+	for(i=0;i>=0;i++, numframes ++)
 	{
+/*
+		sm_use("renderforward");
+		glUniform1iv(sm_uniloc("patchoffset"), 1, &i);//render a patch
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+		glBindVertexArray(examplemodelvao);
+		glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
+
+
+	glDisable(GL_DEPTH_TEST);
+	glBlendFunc (GL_ONE, GL_ONE);
+		sm_use("gather");
+		glUniform1iv(sm_uniloc("patchoffset"), 1, &i);//render a patch
+		glDrawArrays(GL_POINTS, 0, 256*256);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable(GL_DEPTH_TEST);
+*/
+		for(;j<100;j++,i++){
+			int pixel = i%(256*256);
+					sm_use("renderforward");
+					glUniform1iv(sm_uniloc("patchoffset"), 1, &pixel);//render a patch
+					glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+					glBindVertexArray(examplemodelvao);
+					glDrawElements(GL_TRIANGLES, examplemodelnumtris*3,  GL_UNSIGNED_SHORT, NULL);
+
+
+				glDisable(GL_DEPTH_TEST);
+				glBlendFunc (GL_ONE, GL_ONE);
+					sm_use("gather");
+					glUniform1iv(sm_uniloc("patchoffset"), 1, &pixel);//render a patch
+					glDrawArrays(GL_POINTS, 0, 256*256);
+				glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glEnable(GL_DEPTH_TEST);
+		}
+		i --;
+
+
+
 		sm_use("example");
 		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 		glBindVertexArray(examplemodelvao);
@@ -113,14 +187,19 @@ int main()
 		glBindVertexArray(textvao);
 		glEnable(GL_DEPTH_TEST);
 
-		if(i%5==0)//calculate framerate every 5 frames
+		//if(i%5==0)//calculate framerate every 5 frames
+		if(numframes % 5 ==0)
 		{
 			static long timesincelast;
 			memset(printtext, 0, 100);
 			long timethisframe = timesincelast-SDL_GetTicks();
 			if(timethisframe != 0)
 				SDL_itoa(1000*5/timethisframe, printtext, 10);
-			strcat(printtext, "FPS");
+			strcat(printtext, "FPS (hemicube ");
+				SDL_itoa(numframes%256, printtext+strlen(printtext), 10);
+			strcat(printtext, ",");
+				SDL_itoa(numframes/256, printtext+strlen(printtext), 10);
+			strcat(printtext, ")");
 			timesincelast = SDL_GetTicks();
 			glBufferData(GL_ARRAY_BUFFER, strlen(printtext), printtext, GL_STREAM_DRAW);//upload the text as an ordinary string
 		}
@@ -161,6 +240,8 @@ int main()
 			transz -=speed*cos(wrot-1.570796);
 			transx +=speed*sin(wrot-1.570796);
 		}
+		if(keys[SDL_SCANCODE_R])
+			j=0;//i += 50;
 		if(keys[SDL_SCANCODE_SPACE])
 			transy -=speed;
 		if(keys[SDL_SCANCODE_LCTRL])
