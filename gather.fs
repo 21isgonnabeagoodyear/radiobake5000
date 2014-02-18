@@ -5,5 +5,6 @@ out vec4 color;
 in vec3 col;
 void main(void)
 {
+//	if(!(isnan(col.x) ||isnan(col.y)||isnan(col.z)))//prevent NANs from tainting our textures when cross products make zero or whatever
 	color = vec4(col,1);
 }

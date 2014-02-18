@@ -1,0 +1,13 @@
+radiobake5000
+copyright 2014 Thomas VanSelus
+generates radiosity lightmaps using hemicubes on the GPU
+not really useful as it does not save the lightmaps, but it was a fun project
+requires shadermagic (https://github.com/21isgonnabeagoodyear/shadermagic) and sdl2
+assuming shadermagic is in the parent directory, compile with gcc -g main.c -o main `sdl2-config --cflags --libs` -lGL  -I../shadermagic -lm
+run main
+push z to toggle between interactive and bake mode
+click in bake mode to control the camera
+wasd in any mode to fly
+uvmap_rgba contains the starting light sources
+radiomodel3.tmd is the scene, exporter.blend will export to that format
+edgesplit everything before exporting, model must have vertex colors
